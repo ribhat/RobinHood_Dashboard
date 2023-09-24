@@ -24,8 +24,7 @@ def ViewHoldings():
         print(key, value)
 
 
-def Quote():
-    ticker = input("Enter ticker: ")
+def Quote(ticker):
     r = robin.get_latest_price(ticker)
     print(ticker.upper(), str(r[0]))
 
@@ -46,7 +45,10 @@ def CreatePieChart():
     plt.tight_layout()
     plt.show()
 
+def CreateBarChart():
 
-CreatePieChart()
-# Quote()
+
+
+#CreatePieChart()
+#Quote(input("Enter a ticker: "))
 #ViewHoldings()
