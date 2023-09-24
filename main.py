@@ -37,7 +37,10 @@ def CreatePieChart():
         labels.append(ticker)
         slices.append(float(details['equity']))
 
-    plt.pie(slices, labels=labels, wedgeprops={'edgecolor': 'black'})
+    explode = [.01] * len(slices)
+
+    plt.pie(slices, labels=labels, wedgeprops={'edgecolor': 'black'}, explode = explode,
+            autopct='%1.1f%%')
 
     plt.title("Allocation Breakdown")
     plt.tight_layout()
@@ -46,4 +49,4 @@ def CreatePieChart():
 
 CreatePieChart()
 # Quote()
-ViewHoldings()
+#ViewHoldings()
