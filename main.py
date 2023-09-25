@@ -2,6 +2,7 @@ import robin_stocks
 import robin_stocks.robinhood as robin
 import pyotp
 from matplotlib import pyplot as plt
+import pandas as pd
 
 plt.style.use('fivethirtyeight') #use print(plt.style.available) to check out other styles.
 
@@ -10,8 +11,6 @@ month_conversion_dict = {'January': '01', 'February': '02', 'March' : '03', 'Apr
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November' , 'December']
 
 
-# totp = pyotp.TOTP("My2FactorAppHere").now()
-# print("current OTP:", totp)
 
 lines = open("C:/Users/bhatr/Desktop/RHCredentials.txt").read().splitlines() #enter the path to your credentials here or manually enter them on the next line instead of this line
 #login = robin.login('bhat.rish@gmail.com', 'Lookatmenow1')
@@ -23,9 +22,9 @@ login = robin.login(Username, Password)
 
 
 
+
 my_stocks = robin.build_holdings()
 dividend_data = robin.account.get_dividends()
-
 
 def ViewHoldings():
     """Basic function to view breakdown of all user holdings
@@ -72,12 +71,11 @@ def DividendHistory(year):
 
     dividends_collected = []
 
-    print(type(months), months)
     for month in months:
         dividends_collected.append(TotalDivendsForMonth(month, year))
 
 
-    print(type(dividends_collected), dividends_collected)
+
     plt.plot(months, dividends_collected, color = '#5a7d9a', linestyle = '--', marker = 'o') #-- means a dashed line
     plt.title('Dividends Collected by Month')
     plt.xlabel('Months')
@@ -103,6 +101,10 @@ def TotalDivendsForMonth(month, year):
 # Quote()
 #ViewHoldings()
 #print(TotalDivendsForMonth('June', 2023))
-DividendHistory(2023)
+#DividendHistory(2023)
+
+df = pd.DataFrame(dividend_data)
+print(df[0:5])
+
 
 #up next try to find out how to build a dashboard the charts can be deployed to.
