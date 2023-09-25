@@ -27,17 +27,26 @@ dividend_data = robin.account.get_dividends()
 
 
 def ViewHoldings():
+    """Basic function to view breakdown of all user holdings
+
+        Returns: None"""
     for key, value in my_stocks.items():
         print(key, value)
 
 
-def Quote():
-    ticker = input("Enter ticker: ")
+def Quote(ticker):
+    """Function used to find a current stock price
+
+        Returns: Float """
     r = robin.get_latest_price(ticker)
     print(ticker.upper(), str(r[0]))
+    return float(r[0])
 
 
 def CreatePieChart():
+    """This function creates a pie chart of the users current holdings
+
+        Returns: None"""
     slices = []
     labels = []
     for ticker, details in my_stocks.items():
@@ -54,7 +63,12 @@ def CreatePieChart():
     plt.show()
 
 def DividendHistory(year):
-    #the x axis will be months and the y axis will be total dividends collected that month
+    """This function will be used to visualize the dividend payouts by each month of the current year in a line graph.
+        the x axis will be months and the y axis will be total dividends collected that month.
+
+        Returns:None
+    """
+
     dividends_collected = []
 
     print(type(months), months)
@@ -67,6 +81,9 @@ def DividendHistory(year):
 
 
 def TotalDivendsForMonth(month, year):
+    """Helper function to return total dividends acquired in a particular month
+    
+        Returns: float"""
     sum = 0
     month_number = month_conversion_dict[month]
     for dictionary in dividend_data:
