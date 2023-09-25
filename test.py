@@ -1,3 +1,4 @@
+import requests
 import robin_stocks
 import robin_stocks.robinhood as robin
 import pyotp
@@ -118,84 +119,97 @@ def TotalDivendsForMonth(month, year):
 # print(TotalDivendsForMonth('June', 2023))
 # DividendHistory(2023)
 print(dividend_data[0])
+response = requests.get(dividend_data[0]['instrument'])
+print(response.json())
 
 
 
 # BUILDING A DASHBOARD ------------------------------------------------------------------------------------------
 
-# dividend_df = pd.DataFrame(dividend_data)
-# print(dividend_df[0:5])
-# df = pd.DataFrame(my_stocks.values(), index=my_stocks.keys())
-# print(df[0:5])
-#
-#
-# #Initiate the App
-#
-# app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
-#
-# #Build Components
-#
-# header = dcc.Markdown(children='# Portfolio Dashboard')
-# mygraph = dcc.Graph(figure={})
-#
-# slices = []
-# labels = []
-# for ticker, details in my_stocks.items():
-#     labels.append(ticker)
-#     slices.append(float(details['equity']))
-# mypie = dcc.Graph(figure=px.pie(names=labels, values=slices, hover_name=labels))
-# dropdown = dcc.Dropdown(options=['Bar Plot', 'Scatter Plot', 'Line Graph'],
-#                         value='Bar Plot',  # initial value displayed when page first loads
-#                         clearable=False)
-#
-# portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(robin.profiles.load_portfolio_profile()['equity']))
-#
-# current_dt = str(datetime.datetime.now())
-# curr_month = current_dt[5:7]
-# curr_year = current_dt[0:4]
-# dividends_this_month = dcc.Markdown(children="Dividends this month: $" + str(TotalDivendsForMonth(str(curr_month), curr_year)))
-# dividends_this_year = dcc.Markdown(children="Dividends so far this year: $" + str(DividendHistory(curr_year)))
-#
-# #Design App Layout
-#
-# app.layout = dbc.Container([
-#     dbc.Row([
-#         dbc.Col([header], width = 6)
-#     ], justify='center'),
-#     dbc.Row([
-#         dbc.Col([mypie], width = 6), dbc.Col([mygraph], width = 6)
-#     ]),
-#     dbc.Row([
-#         dbc.Col(), dbc.Col([dropdown], width = 6)
-#     ], justify='right'),
-#     dbc.Row([
-#         dbc.Col([portfolio_value], width=6), dbc.Col([dividends_this_month], width = 6)
-#     ]),
-#     dbc.Row([
-#         dbc.Col(), dbc.Col([dividends_this_year], width = 6)
-#     ])
-# ])
-#
-# # Callback allows components to interact
-# @app.callback(
-#     Output(mygraph, component_property='figure'),
-#     Input(dropdown, component_property='value')
-# )
-# def update_graph(user_input):  # function arguments come from the component property of the Input
-#     dividends_collected = []
-#
-#     for month in months:
-#         dividends_collected.append(TotalDivendsForMonth(month, 2023))
-#
-#     if user_input == 'Bar Plot':
-#         fig = px.bar(data_frame=dividend_df, x=months, y=dividends_collected, title = 'Dividend Breakdown by Month')
-#
-#     elif user_input == 'Scatter Plot':
-#         fig = px.scatter(data_frame=dividend_df, x=months, y=dividends_collected, title = 'Dividend Breakdown by Month')
-#
-#     elif user_input == 'Line Graph':
-#         fig = px.line(data_frame=dividend_df, x=months, y=dividends_collected, title = 'Dividend Breakdown by Month')
-#
-#     return fig  # returned objects are assigned to the component property of the Output
-#
-# app.run_server(port=8053)
+dividend_df = pd.DataFrame(dividend_data)
+pd.set_option('display.max_columns', None)
+print(dividend_df.head())
+
+
+#use this code if figure out how to have a diffirent color for each ticker on the bar chart. This code adds the ticker as a column to the dividend_df
+#need to compose a list of all the symbols (tickers)
+# tickers = []
+# for i in range(len(dividend_data)):
+#     response = requests.get(dividend_data[i]['instrument'])
+#     tickers.append(response.json()['symbol'])
+# dividend_df['Ticker'] = tickers
+
+df = pd.DataFrame(my_stocks.values(), index=my_stocks.keys())
+print(df[0:5])
+
+
+#Initiate the App
+
+app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
+
+#Build Components
+
+header = dcc.Markdown(children='# Portfolio Dashboard')
+mygraph = dcc.Graph(figure={})
+
+slices = []
+labels = []
+for ticker, details in my_stocks.items():
+    labels.append(ticker)
+    slices.append(float(details['equity']))
+mypie = dcc.Graph(figure=px.pie(names=labels, values=slices, hover_name=labels))
+dropdown = dcc.Dropdown(options=['Bar Plot', 'Scatter Plot', 'Line Graph'],
+                        value='Bar Plot',  # initial value displayed when page first loads
+                        clearable=False)
+
+portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(robin.profiles.load_portfolio_profile()['equity']))
+
+current_dt = str(datetime.datetime.now())
+curr_month = current_dt[5:7]
+curr_year = current_dt[0:4]
+dividends_this_month = dcc.Markdown(children="Dividends this month: $" + str(TotalDivendsForMonth(str(curr_month), curr_year)))
+dividends_this_year = dcc.Markdown(children="Dividends so far this year: $" + str(DividendHistory(curr_year)))
+
+#Design App Layout
+
+app.layout = dbc.Container([
+    dbc.Row([
+        dbc.Col([header], width = 6)
+    ], justify='center'),
+    dbc.Row([
+        dbc.Col([mypie], width = 6), dbc.Col([mygraph], width = 6)
+    ]),
+    dbc.Row([
+        dbc.Col(), dbc.Col([dropdown], width = 6)
+    ], justify='right'),
+    dbc.Row([
+        dbc.Col([portfolio_value], width=6), dbc.Col([dividends_this_month], width = 6)
+    ]),
+    dbc.Row([
+        dbc.Col(), dbc.Col([dividends_this_year], width = 6)
+    ])
+])
+
+# Callback allows components to interact
+@app.callback(
+    Output(mygraph, component_property='figure'),
+    Input(dropdown, component_property='value')
+)
+def update_graph(user_input):  # function arguments come from the component property of the Input
+    dividends_collected = []
+
+    for month in months:
+        dividends_collected.append(TotalDivendsForMonth(month, 2023))
+
+    if user_input == 'Bar Plot':
+        fig = px.bar(data_frame=dividend_df, x=months, y=dividends_collected, title = 'Dividend Breakdown by Month')
+
+    elif user_input == 'Scatter Plot':
+        fig = px.scatter(data_frame=dividend_df, x=months, y=dividends_collected, title = 'Dividend Breakdown by Month')
+
+    elif user_input == 'Line Graph':
+        fig = px.line(data_frame=dividend_df, x=months, y=dividends_collected, title = 'Dividend Breakdown by Month')
+
+    return fig  # returned objects are assigned to the component property of the Output
+
+app.run_server(port=8053)
