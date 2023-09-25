@@ -2,6 +2,7 @@ import robin_stocks
 import robin_stocks.robinhood as robin
 import pyotp
 from matplotlib import pyplot as plt
+import requests
 
 # totp = pyotp.TOTP("My2FactorAppHere").now()
 # print("current OTP:", totp)
@@ -16,7 +17,7 @@ login = robin.login(Username, Password)
 
 
 
-my_stocks = robin.build_holdings()
+#my_stocks = robin.build_holdings()
 
 
 def ViewHoldings():
@@ -46,8 +47,16 @@ def CreatePieChart():
     plt.show()
 
 def CreateBarChart():
+    return
 
 
+def ViewDividendHistory():
+    dividend_info = robin.account.get_dividends()
+
+
+    return
+
+print(robin.account.get_dividends()[1])
 
 #CreatePieChart()
 #Quote(input("Enter a ticker: "))
