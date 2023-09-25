@@ -3,11 +3,12 @@ import robin_stocks.robinhood as robin
 import pyotp
 from matplotlib import pyplot as plt
 
+plt.style.use('fivethirtyeight') #use print(plt.style.available) to check out other styles.
+
 month_conversion_dict = {'January': '01', 'February': '02', 'March' : '03', 'April': '04', 'May' : '05', "June" : "06", 'July': '07',
                          'August': '08', 'September': '09', 'October' : '10', 'November':'11', 'December':'12'}
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November' , 'December']
 
-year = '2023'
 
 # totp = pyotp.TOTP("My2FactorAppHere").now()
 # print("current OTP:", totp)
@@ -75,14 +76,18 @@ def DividendHistory(year):
     for month in months:
         dividends_collected.append(TotalDivendsForMonth(month, year))
 
+
     print(type(dividends_collected), dividends_collected)
-    plt.plot(months, dividends_collected)
+    plt.plot(months, dividends_collected, color = '#5a7d9a', linestyle = '--', marker = 'o') #-- means a dashed line
+    plt.title('Dividends Collected by Month')
+    plt.xlabel('Months')
+    plt.ylabel('Dividends Collected')
     plt.show()
 
 
 def TotalDivendsForMonth(month, year):
     """Helper function to return total dividends acquired in a particular month
-    
+
         Returns: float"""
     sum = 0
     month_number = month_conversion_dict[month]
@@ -97,5 +102,7 @@ def TotalDivendsForMonth(month, year):
 #CreatePieChart()
 # Quote()
 #ViewHoldings()
-#print(TotalDivendsForMonth('June'))
+#print(TotalDivendsForMonth('June', 2023))
 DividendHistory(2023)
+
+#up next try to find out how to build a dashboard the charts can be deployed to.
