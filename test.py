@@ -18,6 +18,7 @@ month_conversion_dict = {'January': '01', 'February': '02', 'March': '03', 'Apri
                          'August': '08', 'September': '09', 'October': '10', 'November': '11', 'December': '12'}
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November',
           'December']
+default_year = 2023
 
 lines = open(
     "C:/Users/bhatr/Desktop/RHCredentials.txt").read().splitlines()  # enter the path to your credentials here or manually enter them on the next line instead of this line
@@ -38,7 +39,6 @@ def ViewHoldings():
         Returns: None"""
     for key, value in my_stocks.items():
         print(key, value)
-
 
 
 def Quote(ticker):
@@ -70,7 +70,7 @@ def CreatePieChart():
     plt.show()
 
 
-def DividendHistory(year):
+def DividendHistory(year=default_year):
     """This function will be used to visualize the dividend payouts by each month of the current year in a line graph.
         the x axis will be months and the y axis will be total dividends collected that month.
 
@@ -95,7 +95,7 @@ def DividendHistory(year):
     return float("%.2f" % sum)
 
 
-def TotalDivendsForMonth(month, year):
+def TotalDivendsForMonth(month, year=default_year):
     """Helper function to return total dividends acquired in a particular month
         Inputs:
         month is str of the month name or str of month number
@@ -120,34 +120,45 @@ def TotalDivendsForMonth(month, year):
 # DividendHistory(2023)
 print(dividend_data[0])
 response = requests.get(dividend_data[0]['instrument'])
-print(response.json())
+#print(response.json())
 
-
-
-# BUILDING A DASHBOARD ------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------
+### BUILDING A DASHBOARD
 
 dividend_df = pd.DataFrame(dividend_data)
 pd.set_option('display.max_columns', None)
+#print(dividend_df.head())
+
+## use this code if figure out how to have a diffirent color for each ticker on the bar chart.
+## need to compose a list of all the symbols (tickers)
+
+## This code adds the ticker as a column to the dividend_df
+tickers = []
+for i in range(len(dividend_data)):
+    response = requests.get(dividend_data[i]['instrument'])
+    tickers.append(response.json()['symbol'])
+dividend_df['Ticker'] = tickers
+
 print(dividend_df.head())
 
 
-#use this code if figure out how to have a diffirent color for each ticker on the bar chart. This code adds the ticker as a column to the dividend_df
-#need to compose a list of all the symbols (tickers)
-# tickers = []
-# for i in range(len(dividend_data)):
-#     response = requests.get(dividend_data[i]['instrument'])
-#     tickers.append(response.json()['symbol'])
-# dividend_df['Ticker'] = tickers
+## filter dividend_df for results only from this year
+print(dividend_df['payable_date'], print(str(default_year)))
+print(type(dividend_df['payable_date']), type(str(default_year)))
 
-df = pd.DataFrame(my_stocks.values(), index=my_stocks.keys())
-print(df[0:5])
+dividend_this_year_df = dividend_df.loc[dividend_df['payable_date'] == str(default_year)]
+print("\nThis is the dividend_this_year_df")
+print(dividend_this_year_df.head())
+print(dividend_this_year_df.shape[0])
 
+total_holdings_df = pd.DataFrame(my_stocks.values(), index=my_stocks.keys())
+#print(total_holdings_df[0:5])
 
-#Initiate the App
+## Initiate the App
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
 
-#Build Components
+## Build Components
 
 header = dcc.Markdown(children='# Portfolio Dashboard')
 mygraph = dcc.Graph(figure={})
@@ -167,28 +178,30 @@ portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(robin.profile
 current_dt = str(datetime.datetime.now())
 curr_month = current_dt[5:7]
 curr_year = current_dt[0:4]
-dividends_this_month = dcc.Markdown(children="Dividends this month: $" + str(TotalDivendsForMonth(str(curr_month), curr_year)))
+dividends_this_month = dcc.Markdown(
+    children="Dividends this month: $" + str(TotalDivendsForMonth(str(curr_month), curr_year)))
 dividends_this_year = dcc.Markdown(children="Dividends so far this year: $" + str(DividendHistory(curr_year)))
 
-#Design App Layout
+# Design App Layout
 
 app.layout = dbc.Container([
     dbc.Row([
-        dbc.Col([header], width = 6)
+        dbc.Col([header], width=6)
     ], justify='center'),
     dbc.Row([
-        dbc.Col([mypie], width = 6), dbc.Col([mygraph], width = 6)
+        dbc.Col([mypie], width=6), dbc.Col([mygraph], width=6)
     ]),
     dbc.Row([
-        dbc.Col(), dbc.Col([dropdown], width = 6)
+        dbc.Col(), dbc.Col([dropdown], width=6)
     ], justify='right'),
     dbc.Row([
-        dbc.Col([portfolio_value], width=6), dbc.Col([dividends_this_month], width = 6)
+        dbc.Col([portfolio_value], width=6), dbc.Col([dividends_this_month], width=6)
     ]),
     dbc.Row([
-        dbc.Col(), dbc.Col([dividends_this_year], width = 6)
+        dbc.Col(), dbc.Col([dividends_this_year], width=6)
     ])
 ])
+
 
 # Callback allows components to interact
 @app.callback(
@@ -202,14 +215,15 @@ def update_graph(user_input):  # function arguments come from the component prop
         dividends_collected.append(TotalDivendsForMonth(month, 2023))
 
     if user_input == 'Bar Plot':
-        fig = px.bar(data_frame=dividend_df, x=months, y=dividends_collected, title = 'Dividend Breakdown by Month')
+        fig = px.bar(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
 
     elif user_input == 'Scatter Plot':
-        fig = px.scatter(data_frame=dividend_df, x=months, y=dividends_collected, title = 'Dividend Breakdown by Month')
+        fig = px.scatter(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
 
     elif user_input == 'Line Graph':
-        fig = px.line(data_frame=dividend_df, x=months, y=dividends_collected, title = 'Dividend Breakdown by Month')
+        fig = px.line(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
 
     return fig  # returned objects are assigned to the component property of the Output
+
 
 app.run_server(port=8053)
