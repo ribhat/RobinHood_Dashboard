@@ -5,7 +5,7 @@ A comprehensive web dashboard built to visualize and analyze an investment portf
 ## 🌟 Features
 * **Portfolio Allocation Pie Chart**: Get a quick snapshot of the distribution of your investments across various assets.
 * **Dividend Analysis**:
-  * **Stacked Bar Chart**: Visualize monthly dividends with a breakdown showing contributions from each stock.
+  * **Bar Chart**: Visualize overall yearly dividends with a breakdown showing contributions by Month.
   * **Scatter Plot**: Observe total dividends received each month.
   * **Line Graph**: Track the trend of total dividends over time.
 * **Interactive Elements**: Switch between different visual representations (Bar, Scatter, Line) for dividend analysis.
