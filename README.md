@@ -29,11 +29,11 @@ A comprehensive web dashboard built to visualize and analyze an investment portf
 **Setup**
 1. Clone the repository:
    
-`print("git clone <repository_url>")`
+ `git clone <repository_url>`
 
 2. Navigate to the project directory and install the required Python packages:
    
-`print("pip install -r requirements.txt")`
+ `pip install -r requirements.txt`
 
 3. Save your Robinhood credentials in RHCredentials.txt or directly in the code (not recommended for security reasons).
 
@@ -42,7 +42,7 @@ A comprehensive web dashboard built to visualize and analyze an investment portf
 
 2. Run the application:
 
-`print("python <main>.py")`
+ `python <main>.py`
 
 3. Open a web browser and navigate to http://127.0.0.1:8053/ to access the dashboard.
 
