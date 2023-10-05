@@ -22,7 +22,7 @@ default_year = 2023
 
 lines = open(
     "C:/Users/bhatr/Desktop/RHCredentials.txt").read().splitlines()  # enter the path to your credentials here or manually enter them on the next line instead of this line
-# login = robin.login('bhat.rish@gmail.com', 'Lookatmenow1')
+# login = robin.login('Username', 'Password')
 
 Username = lines[0]
 Password = lines[1]
