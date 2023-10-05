@@ -199,6 +199,9 @@ app.layout = dbc.Container([
     ]),
     dbc.Row([
         dbc.Col(), dbc.Col([dividends_this_year], width=6)
+
+
+    #Include a scrollable table that lists the dividends recieved this year
     ])
 ])
 
@@ -212,7 +215,7 @@ def update_graph(user_input):  # function arguments come from the component prop
     dividends_collected = []
 
     for month in months:
-        dividends_collected.append(TotalDivendsForMonth(month, 2023))
+        dividends_collected.append(TotalDivendsForMonth(month, 2023)) #create an array that represents dividends collected each month
 
     if user_input == 'Bar Plot':
         fig = px.bar(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
