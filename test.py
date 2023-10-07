@@ -224,16 +224,16 @@ pie_dropdown = dcc.Dropdown(options=['Total Holdings', 'DividendsYTD'],
                              value='DividendsYTD',  # initial value displayed when page first loads
                              clearable=False)
 
-portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(robin.profiles.load_portfolio_profile()['equity']))
+portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(float("%.2f" % float(robin.profiles.load_portfolio_profile()['equity']))))
 
 current_dt = str(datetime.datetime.now())
 curr_month = current_dt[5:7]
 curr_year = current_dt[0:4]
 
 dividends_this_month = dcc.Markdown(
-    children="Dividends this month: $" + str(TotalDivendsPerMonthYTD(str(curr_month), curr_year).round(2)))
+    children="Dividends this month: $" + str(float("%.2f" % TotalDivendsPerMonthYTD(str(curr_month), curr_year))))
 dividends_this_year = dcc.Markdown(
-    children="Dividends so far this year: $" + str(TotalDividendsYTD(curr_year).round(2)))
+    children="Dividends so far this year: $" + str(float("%.2f" % TotalDividendsYTD(curr_year))))
 
 ## DESIGN APP LAYOUT
 
@@ -308,7 +308,9 @@ def update_graph(plot_input, pie_input):  ## function arguments come from the co
     else:
         pie_fig = px.pie(data_frame=amounts_this_year_df, names=amounts_this_year_df['Ticker'],
                          values=amounts_this_year_df['amount'], hover_name=amounts_this_year_df['Ticker'],
-                         title='Dividends Received TYD', width=635, height=500, hole=.02)
+                         title='Dividends Received TYD', width=637, height=500, hole=.02)
+
+    pie_fig.update_traces(textposition='inside', textinfo='percent+label')
 
     return plot_fig, pie_fig  # returned objects are assigned to the component property of the Output
 
