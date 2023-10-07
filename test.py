@@ -10,6 +10,7 @@ import datetime
 from dash import Dash, dcc, Output, Input, html, dash_table  # pip install dash
 import dash_bootstrap_components as dbc  # pip install dash-bootstrap-components
 import plotly.express as px
+import plotly.graph_objects as go
 
 plt.style.use('fivethirtyeight')  # use print(plt.style.available) to check out other styles.
 
@@ -172,11 +173,12 @@ print("done")
 total_holdings_df = pd.DataFrame(my_stocks.values(), index=my_stocks.keys())
 #print(total_holdings_df[0:5])
 
-## Initiate the App
+
+## INITIATE THE APP
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
 
-## Build Components
+## BUILD COMPONENTS
 
 header = dcc.Markdown(children='# Dividend Dashboard')
 
@@ -187,11 +189,13 @@ labels = []
 for ticker, details in my_stocks.items():
     labels.append(ticker)
     slices.append(float(details['equity']))
-mypie = dcc.Graph(figure=px.pie(names=labels, values=slices, hover_name=labels))
+# mypie = dcc.Graph(figure=px.pie(names=labels, values=slices, hover_name=labels))
+
+pie_or_dividendtable = dcc.Graph(figure={})
 
 
 amounts_this_year_df = amounts_this_year_df.sort_values(by='amount', ascending=False) #sort biggest to smallest
-# Define columns list for DataTable
+## Define columns list for DataTable
 columns_list = []
 for col_name in amounts_this_year_df.columns:
     if col_name == "amount":
@@ -207,7 +211,7 @@ for col_name in amounts_this_year_df.columns:
             "id": col_name
         }
     columns_list.append(column_dict)
-# Define DataTable
+## Define DataTable
 DividendTableYTD = dash_table.DataTable(
     id='table',
     columns=columns_list,
@@ -215,10 +219,36 @@ DividendTableYTD = dash_table.DataTable(
     style_table={'overflowY': 'auto'},
     style_cell={'color': 'blue'}
 )
+## We also want to create a data table using plotly to make it interactive
+# Create table headers, and replace 'amount' with 'Dividends This Year'
+headers = list(amounts_this_year_df.columns)
+headers[headers.index('amount')] = 'Dividends This Year'
 
-dropdown = dcc.Dropdown(options=['Bar Plot', 'Scatter Plot', 'Line Graph'],
-                        value='Bar Plot',  # initial value displayed when page first loads
-                        clearable=False)
+# Format the 'amount' column in the DataFrame to have two decimal places
+formatted_values = [amounts_this_year_df[col].round(2) if col == 'amount' else amounts_this_year_df[col] for col in headers]
+
+# Create the datatable
+dividend_datatable_fig = go.Figure(data=[go.Table(
+    header=dict(values=headers,
+                fill_color='paleturquoise',
+                align='left'),
+    cells=dict(values=formatted_values,
+               fill_color='lavender',
+               align='left'))
+])
+
+
+
+
+
+
+
+plot_dropdown = dcc.Dropdown(options=['Bar Plot', 'Scatter Plot', 'Line Graph'],
+                             value='Bar Plot',  # initial value displayed when page first loads
+                             clearable=False)
+pie_or_table_dropdown = dcc.Dropdown(options=['Portfolio Pie Chart', 'Dividend Table'],
+                             value='Portfolio Pie Chart',  # initial value displayed when page first loads
+                             clearable=False)
 
 portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(robin.profiles.load_portfolio_profile()['equity']))
 
@@ -236,10 +266,10 @@ app.layout = dbc.Container([
         dbc.Col([header], width=6)
     ], justify='center'),
     dbc.Row([
-        dbc.Col([mypie], width=4), dbc.Col([mygraph], width=4), dbc.Col([DividendTableYTD], width=4)
+        dbc.Col([pie_or_dividendtable], width=6), dbc.Col([mygraph], width=6), dbc.Col([DividendTableYTD], width=4)
     ]),
     dbc.Row([
-        dbc.Col(), dbc.Col([dropdown], width=4), dbc.Col()
+        dbc.Col(pie_or_table_dropdown), dbc.Col([plot_dropdown], width=4), dbc.Col()
     ], justify='right'),
     dbc.Row([
         dbc.Col([portfolio_value], width=4), dbc.Col(), dbc.Col([dividends_this_month], width=4)
@@ -254,26 +284,44 @@ app.layout = dbc.Container([
 
 
 # Callback allows components to interact
-@app.callback(
+@app.callback(#For multiple inputs, add paramaters to update_graph, For multiple outputs, return more values
     Output(mygraph, component_property='figure'),
-    Input(dropdown, component_property='value')
+    Output(pie_or_dividendtable, component_property='figure'),
+    Input(plot_dropdown, component_property='value'),
+    Input(pie_or_table_dropdown, component_property='value')
 )
-def update_graph(user_input):  # function arguments come from the component property of the Input
+def update_graph(plot_input, pie_or_table_input):  # function arguments come from the component property of the Input
+
+    ## TO Update the Bar/Scatter/Line Graph
     dividends_collected = []
 
     for month in months:
         dividends_collected.append(TotalDivendsPerMonthYTD(month, 2023)) #create an array that represents dividends collected each month
 
-    if user_input == 'Bar Plot':
-        fig = px.bar(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
+    if plot_input == 'Bar Plot':
+        plot_fig = px.bar(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
 
-    elif user_input == 'Scatter Plot':
-        fig = px.scatter(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
+    elif plot_input == 'Scatter Plot':
+        plot_fig = px.scatter(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
 
-    elif user_input == 'Line Graph':
-        fig = px.line(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
+    elif plot_input == 'Line Graph':
+        plot_fig = px.line(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
 
-    return fig  # returned objects are assigned to the component property of the Output
+
+    ## To toggle between Portfolio Allocation and Dividends Recieved this month
+
+    if pie_or_table_input == 'Portfolio Pie Chart':
+        slices = []
+        labels = []
+        for ticker, details in my_stocks.items():
+            labels.append(ticker)
+            slices.append(float(details['equity']))
+
+        pie_or_table_fig = px.pie(names=labels, values=slices, hover_name=labels)
+    else:
+        pie_or_table_fig = dividend_datatable_fig #try = DividendTableYTD
+
+    return plot_fig, pie_or_table_fig  # returned objects are assigned to the component property of the Output
 
 
 app.run_server(port=8053)
