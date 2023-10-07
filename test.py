@@ -77,7 +77,7 @@ def TotalDividendsYTD(year=default_year):
     """This function will be used to visualize the dividend payouts by each month of the current year in a line graph.
         the x axis will be months and the y axis will be total dividends collected that month.
 
-        Returns: int -> Sum of all dividends collected so far this year
+        Returns: float -> Sum of all dividends collected so far this year
     """
 
     sum = 0
@@ -115,8 +115,6 @@ def TotalDivendsPerMonthYTD(month, year=default_year):
             sum += float(dictionary['amount'])
     return float("%.2f" % sum)
 
-def TotalDividendsPerStockYTD(ticker, year = default_year):
-    sum = 0
 
 
 
@@ -181,17 +179,20 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.VAPOR])
 header = dcc.Markdown(children='# Dividend Dashboard')
 
 mygraph = dcc.Graph(figure={})
+mypie = dcc.Graph(figure={})
 
 slices = []
 labels = []
 for ticker, details in my_stocks.items():
     labels.append(ticker)
     slices.append(float(details['equity']))
-mypie = dcc.Graph(figure=px.pie(names=labels, values=slices, hover_name=labels))
+total_holdings_pie = dcc.Graph(figure=px.pie(names=labels, values=slices, hover_name=labels))
+dividendYTD_pie = dcc.Graph(figure=px.pie(names = amounts_this_year_df['Ticker'], values = amounts_this_year_df['amount'], hover_name=amounts_this_year_df['Ticker']))
 
 
+## Sort DataFrame in Descending order
 amounts_this_year_df = amounts_this_year_df.sort_values(by='amount', ascending=False) #sort biggest to smallest
-# Define columns list for DataTable
+# Define columns list for DataTable. We can use the column list to create the DividendTableYTD
 columns_list = []
 for col_name in amounts_this_year_df.columns:
     if col_name == "amount":
@@ -216,9 +217,12 @@ DividendTableYTD = dash_table.DataTable(
     style_cell={'color': 'blue'}
 )
 
-dropdown = dcc.Dropdown(options=['Bar Plot', 'Scatter Plot', 'Line Graph'],
-                        value='Bar Plot',  # initial value displayed when page first loads
-                        clearable=False)
+plot_dropdown = dcc.Dropdown(options=['Bar Plot', 'Scatter Plot', 'Line Graph'],
+                             value='Bar Plot',  # initial value displayed when page first loads
+                             clearable=False)
+pie_dropdown = dcc.Dropdown(options=['Total Holdings', 'DividendsYTD'],
+                             value='DividendsYTD',  # initial value displayed when page first loads
+                             clearable=False)
 
 portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(robin.profiles.load_portfolio_profile()['equity']))
 
@@ -227,53 +231,86 @@ curr_month = current_dt[5:7]
 curr_year = current_dt[0:4]
 
 dividends_this_month = dcc.Markdown(
-    children="Dividends this month: $" + str(TotalDivendsPerMonthYTD(str(curr_month), curr_year)))
+    children="Dividends this month: $" + str(TotalDivendsPerMonthYTD(str(curr_month), curr_year).round(2)))
 dividends_this_year = dcc.Markdown(
-    children="Dividends so far this year: $" + str(TotalDividendsYTD(curr_year)))
+    children="Dividends so far this year: $" + str(TotalDividendsYTD(curr_year).round(2)))
 
 ## DESIGN APP LAYOUT
 
 app.layout = dbc.Container([
     dbc.Row([
-        dbc.Col([header], width=6)
-    ], justify='center'),
-    dbc.Row([
-        dbc.Col([mypie], width=6), dbc.Col([portfolio_value], width = 1), dbc.Col([mygraph], width = 5)
+        dbc.Col([header], width={"size": 6, "offset": 3})
     ]),
     dbc.Row([
-        dbc.Col(width=4), dbc.Col([dividends_this_month], width=4), dbc.Col([dropdown], width=5)
+        dbc.Col([mypie], width=6),
+        dbc.Col([portfolio_value], width = 1),
+        dbc.Col([mygraph], width = 5)
     ]),
     dbc.Row([
-        dbc.Col([DividendTableYTD], width=4), dbc.Col([dividends_this_year], width=4), dbc.Col()
+        dbc.Col([pie_dropdown], width=6),
+        dbc.Col(width=1),
+        dbc.Col([plot_dropdown], width=5)      #
+    ]),
+dbc.Row([
+        dbc.Col(),
+        dbc.Col(),
+        dbc.Col()
     ]),
     dbc.Row([
-        dbc.Col(), dbc.Col(), dbc.Col()
+        dbc.Col(),
+        dbc.Col(),
+        dbc.Col([dividends_this_month], width=4)
+    ]),
+    dbc.Row([
+        dbc.Col([DividendTableYTD], width=4),
+        dbc.Col( width=4),
+        dbc.Col([dividends_this_year], width= 4)
     ])
 
 ])
 
 
-# Callback allows components to interact
+## Callback allows components to interact
 @app.callback(
     Output(mygraph, component_property='figure'),
-    Input(dropdown, component_property='value')
+    Output(mypie, component_property='figure'),
+    Input(plot_dropdown, component_property='value'),
+    Input(pie_dropdown, component_property='value')
 )
-def update_graph(user_input):  # function arguments come from the component property of the Input
+def update_graph(plot_input, pie_input):  ## function arguments come from the component property of the Input
+    ## Update the Bar/Scatter/Line Plot
     dividends_collected = []
 
     for month in months:
         dividends_collected.append(TotalDivendsPerMonthYTD(month, 2023)) #create an array that represents dividends collected each month
 
-    if user_input == 'Bar Plot':
-        fig = px.bar(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
+    if plot_input == 'Bar Plot':
+        plot_fig = px.bar(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month',
+                          width=525, height=500)
 
-    elif user_input == 'Scatter Plot':
-        fig = px.scatter(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
+    elif plot_input == 'Scatter Plot':
+        plot_fig = px.scatter(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month',
+                              width=525, height=500)
 
-    elif user_input == 'Line Graph':
-        fig = px.line(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
+    elif plot_input == 'Line Graph':
+        plot_fig = px.line(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month',
+                           width=525, height=500)
 
-    return fig  # returned objects are assigned to the component property of the Output
+    ## Update the Pie Chart:
+    if pie_input == 'Total Holdings':
+        slices = []
+        labels = []
+        for ticker, details in my_stocks.items():
+            labels.append(ticker)
+            slices.append(float(details['equity']))
+        pie_fig = px.pie(names=labels, values=slices, hover_name=labels, title='Portfolio Breakdown',
+                         width=637, height=500, hole=.02)
+    else:
+        pie_fig = px.pie(data_frame=amounts_this_year_df, names=amounts_this_year_df['Ticker'],
+                         values=amounts_this_year_df['amount'], hover_name=amounts_this_year_df['Ticker'],
+                         title='Dividends Received TYD', width=635, height=500, hole=.02)
+
+    return plot_fig, pie_fig  # returned objects are assigned to the component property of the Output
 
 
 app.run_server(port=8053)
