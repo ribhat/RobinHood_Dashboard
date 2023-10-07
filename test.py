@@ -226,7 +226,7 @@ current_dt = str(datetime.datetime.now())
 curr_month = current_dt[5:7]
 curr_year = current_dt[0:4]
 dividends_this_month_and_year = dcc.Markdown(
-    children="Dividends this month: $" + str(TotalDivendsPerMonthYTD(str(curr_month), curr_year))) + "\nDividends so far this year: $" + str(TotalDividendsYTD(curr_year))
+    children="Dividends this month: $" + str(TotalDivendsPerMonthYTD(str(curr_month), curr_year)) + "\nDividends so far this year: $" + str(TotalDividendsYTD(curr_year)))
 dividends_this_year = dcc.Markdown(children="Dividends so far this year: $" + str(TotalDividendsYTD(curr_year)))
 
 # Design App Layout
