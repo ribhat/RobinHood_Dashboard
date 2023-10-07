@@ -225,27 +225,29 @@ portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(robin.profile
 current_dt = str(datetime.datetime.now())
 curr_month = current_dt[5:7]
 curr_year = current_dt[0:4]
-dividends_this_month_and_year = dcc.Markdown(
-    children="Dividends this month: $" + str(TotalDivendsPerMonthYTD(str(curr_month), curr_year)) + "\nDividends so far this year: $" + str(TotalDividendsYTD(curr_year)))
-dividends_this_year = dcc.Markdown(children="Dividends so far this year: $" + str(TotalDividendsYTD(curr_year)))
 
-# Design App Layout
+dividends_this_month = dcc.Markdown(
+    children="Dividends this month: $" + str(TotalDivendsPerMonthYTD(str(curr_month), curr_year)))
+dividends_this_year = dcc.Markdown(
+    children="Dividends so far this year: $" + str(TotalDividendsYTD(curr_year)))
+
+## DESIGN APP LAYOUT
 
 app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([header], width=6)
     ], justify='center'),
     dbc.Row([
-        dbc.Col([mypie], width=6), dbc.Col([portfolio_value], width = 2), dbc.Col([DividendTableYTD], width=4)
+        dbc.Col([mypie], width=6), dbc.Col([portfolio_value], width = 1), dbc.Col([mygraph], width = 5)
+    ]),
+    dbc.Row([
+        dbc.Col(width=4), dbc.Col([dividends_this_month], width=4), dbc.Col([dropdown], width=5)
+    ]),
+    dbc.Row([
+        dbc.Col([DividendTableYTD], width=4), dbc.Col([dividends_this_year], width=4), dbc.Col()
     ]),
     dbc.Row([
         dbc.Col(), dbc.Col(), dbc.Col()
-    ]),
-    dbc.Row([
-        dbc.Col([mygraph], width = 5), dbc.Col(), dbc.Col([dividends_this_month_and_year], width=4)
-    ]),
-    dbc.Row([
-        dbc.Col([dropdown], width=5), dbc.Col(), dbc.Col([dividends_this_year], width=4)
     ])
 
 ])
