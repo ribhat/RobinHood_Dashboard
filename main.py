@@ -5,6 +5,7 @@ import pyotp
 from matplotlib import pyplot as plt
 import pandas as pd
 import datetime
+import getpass
 
 # Dash Imports
 from dash import Dash, dcc, Output, Input, html  # pip install dash
@@ -18,16 +19,18 @@ month_conversion_dict = {'January': '01', 'February': '02', 'March': '03', 'Apri
                          'August': '08', 'September': '09', 'October': '10', 'November': '11', 'December': '12'}
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November',
           'December']
-default_year = 2023
+default_year = 2025
 
-lines = open(
-    "C:/Users/bhatr/Desktop/RHCredentials.txt").read().splitlines()  # enter the path to your credentials here or manually enter them on the next line instead of this line
-# login = robin.login('Username', 'Password')
+lines = open("C:/Users/rishs/OneDrive/Desktop/RHCredentials.txt").read().splitlines()  # enter the path to your credentials here or manually enter them on the next line instead of this line
 
 Username = lines[0]
 Password = lines[1]
 
 login = robin.login(Username, Password)
+
+print("login successful")
+
+
 
 my_stocks = robin.build_holdings()
 dividend_data = robin.account.get_dividends()
@@ -141,10 +144,14 @@ dividend_df['Ticker'] = tickers
 
 print(dividend_df.head())
 
+print("---------------------------------")
+
 
 ## filter dividend_df for results only from this year
 print(dividend_df['payable_date'], print(str(default_year)))
+print("-----")
 print(type(dividend_df['payable_date']), type(str(default_year)))
+print("-----")
 
 dividend_this_year_df = dividend_df.loc[dividend_df['payable_date'] == str(default_year)]
 print("\nThis is the dividend_this_year_df")
@@ -215,7 +222,7 @@ def update_graph(user_input):  # function arguments come from the component prop
     dividends_collected = []
 
     for month in months:
-        dividends_collected.append(TotalDivendsForMonth(month, 2023)) #create an array that represents dividends collected each month
+        dividends_collected.append(TotalDivendsForMonth(month, default_year)) #create an array that represents dividends collected each month
 
     if user_input == 'Bar Plot':
         fig = px.bar(data_frame=dividend_df, x=months, y=dividends_collected, title='Dividend Breakdown by Month')
@@ -229,4 +236,4 @@ def update_graph(user_input):  # function arguments come from the component prop
     return fig  # returned objects are assigned to the component property of the Output
 
 
-app.run_server(port=8053)
+app.run(port=8053)
