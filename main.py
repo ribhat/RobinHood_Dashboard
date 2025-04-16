@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import datetime
 import getpass
+import data.api as api
 from constants import month_conversion_dict, months, default_year, curr_year, curr_month, curr_day
 
 # Dash Imports
@@ -13,22 +14,18 @@ from dash import Dash, dcc, Output, Input, html  # pip install dash
 import dash_bootstrap_components as dbc  # pip install dash-bootstrap-components
 import plotly.express as px
 
-
 plt.style.use('fivethirtyeight')  # use print(plt.style.available) to check out other styles.
 
-lines = open("C:/Users/rishs/OneDrive/Desktop/RHCredentials.txt").read().splitlines()  # enter the path to your credentials here or manually enter them on the next line instead of this line
 
-Username = lines[0]
-Password = lines[1]
 
-login = robin.login(Username, Password)
+login = api.login()
 
 print("login successful")
 
 
 
-my_stocks = robin.build_holdings()
-dividend_data = robin.account.get_dividends()
+my_stocks = api.get_holdings()
+dividend_data = api.get_dividend_data()
 
 
 def ViewHoldings():
@@ -38,14 +35,6 @@ def ViewHoldings():
     for key, value in my_stocks.items():
         print(key, value)
 
-
-def Quote(ticker):
-    """Function used to find a current stock price
-
-        Returns: Float """
-    r = robin.get_latest_price(ticker)
-    print(ticker.upper(), str(r[0]))
-    return float(r[0])
 
 
 def CreatePieChart():
@@ -143,7 +132,7 @@ print("---------------------------------")
 
 
 ## filter dividend_df for results only from this year
-print(dividend_df['payable_date'], print(str(default_year)))
+print(dividend_df['payable_date'], str(default_year))
 print("-----")
 print(type(dividend_df['payable_date']), type(str(default_year)))
 print("-----")
@@ -175,7 +164,7 @@ dropdown = dcc.Dropdown(options=['Bar Plot', 'Scatter Plot', 'Line Graph'],
                         value='Bar Plot',  # initial value displayed when page first loads
                         clearable=False)
 
-portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(robin.profiles.load_portfolio_profile()['equity']))
+portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(api.get_portfolio_value()))
 
 dividends_this_month = dcc.Markdown(
     children="Dividends this month: $" + str(TotalDivendsForMonth(str(curr_month), curr_year)))
