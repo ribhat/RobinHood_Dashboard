@@ -6,20 +6,15 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import datetime
 import getpass
+from constants import month_conversion_dict, months, default_year, curr_year, curr_month, curr_day
 
 # Dash Imports
 from dash import Dash, dcc, Output, Input, html  # pip install dash
 import dash_bootstrap_components as dbc  # pip install dash-bootstrap-components
 import plotly.express as px
 
-plt.style.use('fivethirtyeight')  # use print(plt.style.available) to check out other styles.
 
-month_conversion_dict = {'January': '01', 'February': '02', 'March': '03', 'April': '04', 'May': '05', "June": "06",
-                         'July': '07',
-                         'August': '08', 'September': '09', 'October': '10', 'November': '11', 'December': '12'}
-months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November',
-          'December']
-default_year = 2025
+plt.style.use('fivethirtyeight')  # use print(plt.style.available) to check out other styles.
 
 lines = open("C:/Users/rishs/OneDrive/Desktop/RHCredentials.txt").read().splitlines()  # enter the path to your credentials here or manually enter them on the next line instead of this line
 
@@ -182,9 +177,6 @@ dropdown = dcc.Dropdown(options=['Bar Plot', 'Scatter Plot', 'Line Graph'],
 
 portfolio_value = dcc.Markdown(children="Portfolio Value: $" + str(robin.profiles.load_portfolio_profile()['equity']))
 
-current_dt = str(datetime.datetime.now())
-curr_month = current_dt[5:7]
-curr_year = current_dt[0:4]
 dividends_this_month = dcc.Markdown(
     children="Dividends this month: $" + str(TotalDivendsForMonth(str(curr_month), curr_year)))
 dividends_this_year = dcc.Markdown(children="Dividends so far this year: $" + str(DividendHistory(curr_year)))
